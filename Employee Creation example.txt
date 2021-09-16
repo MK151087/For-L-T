@@ -1,0 +1,208 @@
+namespace EmployeeManager
+{
+    using System;
+    using System.Collections;
+    using System.Text;
+
+    public class TestClass
+    {
+        #region Methods
+
+        public static void Main(string[] args)
+        {
+            try
+            {
+                Console.Write ("How many employees do you want to generate? ");
+                int count = int.Parse(Console.ReadLine());
+                Console.WriteLine();
+
+                EmployeeCollection ec = new EmployeeCollection();
+                ec.CreateEmployeeList(count);
+
+                EmployeeCollection.CompareItemsCallback callBack1 = new EmployeeCollection.CompareItemsCallback(Employee.CompareByName);
+
+                PerformEmployeeMaintenance(ec, callBack1, "List of Employees Sorted by Name");
+
+                Console.WriteLine ();
+
+                callBack1 = new EmployeeCollection.CompareItemsCallback(Employee.CompareById);
+
+                PerformEmployeeMaintenance(ec, callBack1, "List of Employees Sorted by ID");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine ("\n\n{0}", e.Message);
+            }
+            finally
+            {
+                Console.Write ("\n\nPress <ENTER> to end: ");
+                Console.ReadLine();
+            }
+        }
+
+       
+        private static void PerformEmployeeMaintenance(EmployeeCollection ec, EmployeeCollection.CompareItemsCallback callBack, string title)
+        {
+            // Sort the list.
+            ec.Sort(callBack);
+
+            // Print the list.
+            ec.PrintEmployees(title);
+        }
+
+        #endregion Methods
+    }
+
+    internal class Employee
+    {
+        #region Fields
+
+        private int id;
+        private string name;
+
+        #endregion Fields
+
+        #region Constructors
+
+        internal Employee(string name, int id)
+        {
+            this.name = name;
+            this.id = id;
+        }
+
+        #endregion Constructors
+
+        #region Properties
+
+        internal int Id
+        {
+            get { return id; }
+            set { id = value; }
+        }
+
+        internal string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
+        #endregion Properties
+
+        #region Methods
+
+      
+        internal static int CompareById(Employee e1, Employee e2)
+        {
+           
+            int result = e1.Id.CompareTo(e2.Id);
+            return result;
+        }
+
+       internal static int CompareByName(Employee e1, Employee e2)
+        {
+            int result = String.Compare (e1.name, e2.name);
+            return result;
+        }
+
+        #endregion Methods
+    }
+
+    internal class EmployeeCollection
+    {
+        #region Fields
+
+        private ArrayList _employeeList = new ArrayList();
+
+        #endregion Fields
+
+        #region Delegates
+
+        internal delegate int CompareItemsCallback(Employee emp1, Employee emp2);
+
+        #endregion Delegates
+
+        #region Methods
+
+        internal void AddNewEmployee(Employee e)
+        {
+            _employeeList.Add (e);
+        }
+
+        
+        internal void CreateEmployeeList(int count)
+        {
+            Random employeeNameRand = new Random (DateTime.Now.Millisecond);
+            Random employeeIdRand = new Random (DateTime.Now.Millisecond + DateTime.Now.Second);
+
+            for (int x=0; x < count; x++)
+            {
+                
+                StringBuilder lastName = new StringBuilder(7);
+
+                for (int i=0; i<7; i++)
+                {
+                    char letter;
+                    if (i==0)
+                    {
+                        
+                        letter = (char) employeeNameRand.Next(65, 90);
+                    }
+                    else
+                    {
+                        
+                        letter = (char) employeeNameRand.Next(97, 122);
+                    }
+
+                   
+                    lastName.Insert(i, letter);
+                }
+
+                
+                int tempId = employeeIdRand.Next (10000, 99999);
+
+               
+                Employee e = new Employee(lastName.ToString(), tempId);
+
+                
+                AddNewEmployee(e);
+            }
+        }
+
+        internal void PrintEmployee(Employee e)
+        {
+            Console.WriteLine ("\tName: {0}, ID: {1}", e.Name, e.Id);
+        }
+
+        internal void PrintEmployees(string title)
+        {
+            Console.WriteLine (title + "\n");
+
+            for (int i=0; i < _employeeList.Count; i++)
+            {
+                Employee e = (Employee)_employeeList[i];
+                PrintEmployee (e);
+            }
+        }
+
+        
+        internal void Sort(CompareItemsCallback sortingMethod)
+        {
+
+            for (int i=1; i < _employeeList.Count; i++)
+            {
+                int j = i;
+                Employee e = (Employee)_employeeList[i];
+
+                while ((j>0) && sortingMethod((Employee)_employeeList[j-1], e) >= 0)
+                {
+                    _employeeList[j] = _employeeList[j-1];
+                    j--;
+                }
+
+                _employeeList[j] = e;
+            }
+        }
+
+        #endregion Methods
+    }
+}
